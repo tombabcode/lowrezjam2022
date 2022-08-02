@@ -27,7 +27,7 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             template: 'src/index.html',
-            title: 'Custom template'
+            title: 'LOWREZ JAM 2022'
         })
     ],
 };

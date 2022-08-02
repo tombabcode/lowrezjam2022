@@ -4,6 +4,9 @@ export default class Player {
 
         // Sprite
         this.sprite = this.scene.physics.add.sprite(0, 0, 'gameplay-player');
+        this.sprite.body.setSize(5, 2);
+        this.sprite.body.setOffset(2, 9);
+        this.sprite.setBounce(0);
 
         // Values
         this.speed = 200;
@@ -74,12 +77,7 @@ export default class Player {
         ];
     }
 
-    updateMovement (time) {
-        this.previousTime = this.currentTime || time || 0;
-        this.currentTime = time || 0;
-        const diff = (this.currentTime - this.previousTime);
-        const delta = diff / 1000;
-
+    updateMovement (delta) {
         // Horizontal movement
         if (this.keysMoveLeft.some(key => key.isDown)) this.moveLeft(delta);
         else if (this.keysMoveRight.some(key => key.isDown)) this.moveRight(delta);
@@ -89,6 +87,9 @@ export default class Player {
         if (this.keysMoveTop.some(key => key.isDown)) this.moveTop(delta);
         else if (this.keysMoveBottom.some(key => key.isDown)) this.moveBottom(delta);
         else this.slowDownVertically(delta);
+
+        // Update depth
+        this.sprite.setDepth(this.sprite.y);
     }
     
 }
