@@ -13,6 +13,11 @@ export default class Chunk {
             immovable: true
         });
 
+        // DEBUG TODO
+        // this.gr = this.scene.add.graphics();
+        // this.gr.setDepth(1000);
+        // this.gr.lineStyle(1, 0x00ff00, .01);
+        
         // Create tiles
         for (let iy = 0; iy < window.CHUNK_SIZE; iy++)
             for (let ix = 0; ix < window.CHUNK_SIZE; ix++) {
@@ -23,11 +28,20 @@ export default class Chunk {
                     this.y * window.CHUNK_SIZE + iy
                 );
                 this.tiles.push(tile);
+                // this.gr.strokeRectShape(new Phaser.Geom.Rectangle(
+                //     this.x * window.CHUNK_SIZE * window.TILE_SIZE + ix * window.TILE_SIZE,
+                //     this.y * window.CHUNK_SIZE * window.TILE_SIZE + iy * window.TILE_SIZE,
+                //     window.CHUNK_SIZE * window.TILE_SIZE, 
+                //     window.CHUNK_SIZE * window.TILE_SIZE
+                // ));
             }
 
+        // this.gr.lineStyle(1, 0xff0000, .1);
+        // this.gr.strokeRectShape(new Phaser.Geom.Rectangle(this.x * window.CHUNK_SIZE * window.TILE_SIZE, this.y * window.CHUNK_SIZE * window.TILE_SIZE, window.CHUNK_SIZE * window.TILE_SIZE, window.CHUNK_SIZE * window.TILE_SIZE));
+            
         // Add collider
         this.scene.physics.add.collider(this.scene.player.sprite, this.physicsGroup);
-
+        
         this.show();
     }
 

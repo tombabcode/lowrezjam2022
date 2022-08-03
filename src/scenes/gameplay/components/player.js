@@ -2,11 +2,26 @@ export default class Player {
     constructor (scene) {
         this.scene = scene;
 
+        this.data = {
+            offset: {
+                x: 9,
+                y: 22,
+                w: 6,
+                h: 3
+            }
+        };
+
         // Sprite
-        this.sprite = this.scene.physics.add.sprite(0, 0, 'gameplay-player');
-        this.sprite.body.setSize(5, 2);
-        this.sprite.body.setOffset(2, 9);
+        this.sprite = this.scene.physics.add.sprite(window.TILE_SIZE / 2, window.TILE_SIZE / 2, 'player');
+        this.sprite.body.setSize(this.data.offset.w, this.data.offset.h);
+        this.sprite.body.setOffset(this.data.offset.x, this.data.offset.y);
+        this.sprite.setOrigin(0.5, 1.0);
         this.sprite.setBounce(0);
+        this.sprite.setFrame(0);
+
+        // Shadow
+        this.shadow = this.scene.add.sprite(0, 0, 'ent:shadow');
+        this.shadow.setOrigin(0.5, 0);
 
         // Values
         this.speed = 200;
@@ -16,9 +31,13 @@ export default class Player {
 
         // Flags
         this.canAccelerate = true;
+        this.movingStatus = undefined;
+        this.movingStatusPre = undefined;
     }
 
     moveLeft (dTime) {
+        this.movingStatus = 'walk';
+        this.sprite.setFlipX(true);
         if (!this.canAccelerate) return;
         this.sprite.body.velocity.x += -this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.x < -this.maxSpeed)
@@ -26,6 +45,8 @@ export default class Player {
     }
 
     moveRight (dTime) {
+        this.movingStatus = 'walk';
+        this.sprite.setFlipX(false);
         if (!this.canAccelerate) return;
         this.sprite.body.velocity.x += this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.x > this.maxSpeed)
@@ -33,6 +54,7 @@ export default class Player {
     }
 
     moveTop (dTime) {
+        this.movingStatus = 'walk';
         if (!this.canAccelerate) return;
         this.sprite.body.velocity.y += -this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.y < -this.maxSpeed)
@@ -40,6 +62,7 @@ export default class Player {
     }
 
     moveBottom (dTime) {
+        this.movingStatus = 'walk';
         if (!this.canAccelerate) return;
         this.sprite.body.velocity.y += this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.y > this.maxSpeed)
@@ -78,6 +101,9 @@ export default class Player {
     }
 
     updateMovement (delta) {
+        this.movingStatusPre = this.movingStatus;
+        this.movingStatus = undefined;
+
         // Horizontal movement
         if (this.keysMoveLeft.some(key => key.isDown)) this.moveLeft(delta);
         else if (this.keysMoveRight.some(key => key.isDown)) this.moveRight(delta);
@@ -88,8 +114,25 @@ export default class Player {
         else if (this.keysMoveBottom.some(key => key.isDown)) this.moveBottom(delta);
         else this.slowDownVertically(delta);
 
+        // Update animation
+        if (this.movingStatus !== this.movingStatusPre) {
+            if (this.movingStatus !== undefined)
+                this.sprite.play({ key: 'player:' + this.movingStatus });
+            else {
+                this.sprite.stop();
+                this.sprite.setFrame(0);
+            }
+        }
+
+        const bounds = this.sprite.getBounds();
+
         // Update depth
-        this.sprite.setDepth(this.sprite.y);
+        const depth = bounds.y + this.data.offset.y;
+        this.sprite.setDepth(depth);
+        this.shadow.setDepth(depth - 1);
+
+        // Update shadow's position
+        this.shadow.setPosition(this.sprite.x, this.sprite.y - 7);
     }
     
 }
