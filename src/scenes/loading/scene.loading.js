@@ -12,6 +12,10 @@ export default class SceneLoading extends Phaser.Scene {
         this.load.image('env:tree:cluster-m', require('../../../assets/env/obstacles/trees/tree_cluster_medium.png'));
         this.load.image('env:tree:cluster-l', require('../../../assets/env/obstacles/trees/tree_cluster_large.png'));
         this.load.image('env:tree:multi-y', require('../../../assets/env/obstacles/trees/tree_y-tiles.png'));
+
+        // Environment (Bushes)
+        this.load.spritesheet('env:bush:single', require('../../../assets/env/food/bush_1.png'), { frameWidth: 8, frameHeight: 8 });
+        this.load.spritesheet('env:bush:double', require('../../../assets/env/food/bush_2.png'), { frameWidth: 16, frameHeight: 8 });
         
         // Environment (Details)
         this.load.spritesheet('env:detail:grass', require('../../../assets/env/details/grass.png'), { frameWidth: 8, frameHeight: 8 });
@@ -20,6 +24,9 @@ export default class SceneLoading extends Phaser.Scene {
 
         // Entity shadow
         this.load.image('ent:shadow', require('../../../assets/entities/shadow.png'));
+
+        // UI
+        this.load.spritesheet('ui:hunger', require('../../../assets/ui/meat_hunger_meter.png'), { frameWidth: 8, frameHeight: 8 });
 
         this.load.on('complete', _ => {
             this.scene.switch('gameplay');

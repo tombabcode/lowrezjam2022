@@ -4,6 +4,7 @@ export default class Chunk {
     constructor (scene, x, y) {
         this.scene = scene;
         this.tiles = [];
+        this.usableObjects = [];
 
         this.x = x;
         this.y = y;
@@ -43,6 +44,11 @@ export default class Chunk {
         this.scene.physics.add.collider(this.scene.player.sprite, this.physicsGroup);
         
         this.show();
+    }
+
+    update (time) {
+        if (this.tiles && this.physicsGroup.active)
+            this.tiles.forEach(tile => tile.update(time));
     }
 
     show () {

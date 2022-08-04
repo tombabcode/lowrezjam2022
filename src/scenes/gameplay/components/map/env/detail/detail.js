@@ -26,4 +26,6 @@ export default class Detail {
         // Update depth
         this.sprite.setDepth(this.sprite.y);
     }
+
+    update (delta) { }
 }

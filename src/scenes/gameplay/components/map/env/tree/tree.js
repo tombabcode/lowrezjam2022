@@ -34,4 +34,6 @@ export default class Tree {
         this.physicsGroup = group;
         this.physicsGroup.add(this.sprite);
     }
+
+    update (delta) { }
 }

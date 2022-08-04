@@ -23,13 +23,18 @@ export default class Player {
         this.shadow = this.scene.add.sprite(0, 0, 'ent:shadow');
         this.shadow.setOrigin(0.5, 0);
 
-        // Values
+        // Movement
         this.speed = 200;
         this.maxSpeed = 35;
         this.factorAccelerate = 3.0;
         this.factorSlowDown = 0.8;
 
+        // Hunger
+        this.hunger = 0;
+        this.hungerFactor = 1;
+
         // Flags
+        this.isDead = false;
         this.canAccelerate = true;
         this.movingStatus = undefined;
         this.movingStatusPre = undefined;
@@ -101,6 +106,8 @@ export default class Player {
     }
 
     updateMovement (delta) {
+        if (this.isDead) { return; }
+
         this.movingStatusPre = this.movingStatus;
         this.movingStatus = undefined;
 
@@ -124,6 +131,7 @@ export default class Player {
             }
         }
 
+        // Get bounds
         const bounds = this.sprite.getBounds();
 
         // Update depth
@@ -133,6 +141,30 @@ export default class Player {
 
         // Update shadow's position
         this.shadow.setPosition(this.sprite.x, this.sprite.y - 7);
+    }
+
+    updateHunger (delta) {
+        if (this.isDead) { return; }
+
+        this.hunger += this.hungerFactor * delta;
+        if (this.hunger >= 100) {
+            this.die();
+        }
+    }
+
+    die () {
+        console.info('Player dead');
+        this.isDead = true;
+        this.sprite.play({ key: 'player:death' });
+        this.sprite.body.velocity.x = 0;
+        this.sprite.body.velocity.y = 0;
+        this.scene.cameras.main.zoomTo(3, 2000);
+        this.scene.tweens.add({ targets: [this.scene.foreground.graphics], alpha: 1, duration: 1000, delay: 1000 });
+    }
+
+    eat (hungerReduction) {
+        this.hunger -= hungerReduction;
+        if (this.hunger < 0) { this.hunger = 0; }
     }
     
 }
