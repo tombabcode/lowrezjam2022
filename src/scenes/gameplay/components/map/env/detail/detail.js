@@ -27,5 +27,9 @@ export default class Detail {
         this.sprite.setDepth(this.sprite.y);
     }
 
+    dispose () {
+        this.sprite.destroy();
+    }
+
     update (delta) { }
 }

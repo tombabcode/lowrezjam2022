@@ -35,5 +35,9 @@ export default class Tree {
         this.physicsGroup.add(this.sprite);
     }
 
+    dispose () {
+        this.sprite.destroy();
+    }
+
     update (delta) { }
 }

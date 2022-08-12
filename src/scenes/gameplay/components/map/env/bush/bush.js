@@ -16,6 +16,7 @@ export default class Bush {
         this.foodSpawnDurationMin = 5000; // ms
         this.foodSpawnDurationMax = 10000; // ms
         this.hungerReduction = 5;
+        this.healthRestore = 3.2;
 
         // Sprite
         this.sprite = this.scene.physics.add.sprite(0, 0, 'env:bush:' + data.name);
@@ -46,6 +47,10 @@ export default class Bush {
         this.physicsGroup.add(this.sprite);
     }
 
+    dispose () {
+        this.sprite.destroy();
+    }
+
     update (time) {
         const player = this.scene.player;
         this.distance = Phaser.Math.Distance.Between(this.calcX, this.calcY, player.sprite.x, player.sprite.y);
@@ -57,8 +62,9 @@ export default class Bush {
     use (time) {
         if (this.foodSpawnedAt <= time) {
             this.foodSpawnedAt = time + Math.floor(Math.random() * (this.foodSpawnDurationMax - this.foodSpawnDurationMin) + this.foodSpawnDurationMin);
-            this.scene.player.eat(this.hungerReduction);
+            this.scene.player.eat(this.hungerReduction, this.healthRestore);
             this.sprite.setFrame(0);
+            this.scene.scoreController.addScore(1);
         }
     }
 }

@@ -25,4 +25,8 @@ export default class Tile {
         if (this.object)
             this.object.update(time);
     }
+
+    dispose () {
+        if (this.object) { this.object.dispose(); }
+    }
 }

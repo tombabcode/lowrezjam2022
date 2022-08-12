@@ -4,7 +4,18 @@ export default class SceneLoading extends Phaser.Scene {
     }
 
     preload () {
-        this.load.spritesheet('player', require('../../../assets/entities/player/player.png'), { frameWidth: 24 }, { frameHeight: 24 });
+        // Player
+        this.load.spritesheet('player', require('../../../assets/entities/player/player.png'), { frameWidth: 24, frameHeight: 24 });
+
+        // Wolf
+        this.load.spritesheet('wolf', require('../../../assets/entities/wolf/wolf.png'), { frameWidth: 24, frameHeight: 24 });
+
+        // Effect (snowing)
+        this.load.spritesheet('vfx:snow:heavy', require('../../../assets/vfx/snow-large-Sheet.png'), { frameWidth: 92, frameHeight: 92 });
+        this.load.spritesheet('vfx:snow:light', require('../../../assets/vfx/snow-medium-Sheet.png'), { frameWidth: 92, frameHeight: 92 });
+
+        // Effect (HP vignette)
+        this.load.spritesheet('vfx:hp', require('../../../assets/vfx/hp_vignette.png'), { frameWidth: 64, frameHeight: 64 });
 
         // Environment (Trees)
         this.load.spritesheet('env:tree:single', require('../../../assets/env/obstacles/trees/trees.png'), { frameWidth: 40 / 5, frameHeight: 16 });

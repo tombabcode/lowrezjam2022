@@ -3,9 +3,15 @@ import Chunk from '../components/map/chunk';
 export default class MapController {
     constructor (scene) {
         this.scene = scene;
+        this.reset();
+    }
 
-        this.chunks = [];
+    reset () {
         this.visibleChunks = [];
+        if (this.chunks) {
+            this.chunks.forEach(v => v.reset());
+        }
+        this.chunks = [];
     }
 
     createChunk (x, y) {
@@ -35,12 +41,10 @@ export default class MapController {
                     let chunk = this.chunks.find(c => c.x === targetChunkX && c.y === targetChunkY);
                 
                     // If chunk exists - load it, otherwise create new one
-                    if (chunk) {
+                    if (chunk)
                         chunk.show();
-                    } else {
+                    else
                         chunk = this.createChunk(targetChunkX, targetChunkY);
-                        console.info('Created chunk at [', targetChunkX, ', ', targetChunkY, ']');
-                    }
 
                     newVisibleChunks.push(chunk);
                 }

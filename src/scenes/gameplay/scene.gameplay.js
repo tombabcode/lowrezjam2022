@@ -3,6 +3,9 @@ import Player from './components/player';
 import TimeController from './controllers/time.controller';
 import MapController from './controllers/map.controller';
 import UIController from './controllers/ui.controller';
+import WeatherController from './controllers/weather.controller';
+import EntityController from './controllers/entity.controller';
+import ScoreController from './controllers/score.controller';
 
 export default class SceneGameplay extends Phaser.Scene {
     constructor () {
@@ -16,10 +19,21 @@ export default class SceneGameplay extends Phaser.Scene {
         this.timeController = new TimeController(this);
         this.mapController = new MapController(this);
         this.uiController = new UIController(this);
+        this.weatherController = new WeatherController(this);
+        this.entityController = new EntityController(this);
+        this.scoreController = new ScoreController();
 
         // Animations (Player)
-        this.anims.create({ key: 'player:walk', frames: this.anims.generateFrameNumbers('player', { frames: [0, 1, 2] }), frameRate: 16, repeat: -1 });
-        this.anims.create({ key: 'player:death', frames: this.anims.generateFrameNumbers('player', { frames: [14, 15, 16, 17] }), frameRate: 16 });
+        this.anims.create({ key: 'player:idle', frames: this.anims.generateFrameNumbers('player', { frames: [0, 1, 2, 3, 4, 5] }), frameRate: 12 });
+        this.anims.create({ key: 'player:walk', frames: this.anims.generateFrameNumbers('player', { frames: [7, 8, 9] }), frameRate: 16 });
+        this.anims.create({ key: 'player:damage', frames: this.anims.generateFrameNumbers('player', { frames: [35, 36, 37, 38] }), frameRate: 12 });
+        this.anims.create({ key: 'player:attack', frames: this.anims.generateFrameNumbers('player', { frames: [30, 31, 32, 33] }), frameRate: 16 });
+        this.anims.create({ key: 'player:death', frames: this.anims.generateFrameNumbers('player', { frames: [42, 43, 44, 45, 46, 47, 48] }), frameRate: 4 });
+        this.anims.create({ key: 'wolf:idle', frames: this.anims.generateFrameNumbers('wolf', { frames: [0, 1, 2, 3, 4, 5] }), frameRate: 12 });
+        this.anims.create({ key: 'wolf:walk', frames: this.anims.generateFrameNumbers('wolf', { frames: [7, 8, 9] }), frameRate: 16, repeat: -1 });
+        this.anims.create({ key: 'wolf:attack', frames: this.anims.generateFrameNumbers('wolf', { frames: [14, 15, 16, 17, 18, 19, 20] }), frameRate: 16 });
+        this.anims.create({ key: 'vfx:snow:heavy', frames: this.anims.generateFrameNumbers('vfx:snow:heavy'), frameRate: 16, repeat: -1 });
+        this.anims.create({ key: 'vfx:snow:light', frames: this.anims.generateFrameNumbers('vfx:snow:light'), frameRate: 16, repeat: -1 });
 
         this.player = new Player(this);
         this.player.initializeMovement();
@@ -41,6 +55,11 @@ export default class SceneGameplay extends Phaser.Scene {
             usage.sort((a, b) => a.distance - b.distance);
             usage[0].use(this.currentTime);
         });
+
+        this.time.delayedCall(2000, _ => {
+            this.entityController.spawnWolf(this.player);
+            this.increaseSpeed();
+        });
     }
 
     update (time) {
@@ -53,11 +72,44 @@ export default class SceneGameplay extends Phaser.Scene {
         // this.timeController.update(diff);
         this.player.updateMovement(delta);
         this.player.updateHunger(delta);
+        this.player.updateHealth();
+        this.player.updateAttack();
+
+        // Update entities
+        this.entityController.update(this.player);
 
         // Update UI
         this.uiController.updateHunger(this.player);
+        this.uiController.updateHealth(this.player);
 
         // Update map
         this.mapController.updateChunks(this.player, time);
+
+        // Update weather
+        this.weatherController.update(time);
+
+        // Animations
+        this.player.updateAnimation();
+        this.entityController.updateAnimations();
+
+        // Score
+        this.scoreController.update(diff);
+    }
+
+    replay () {
+        this.timeController.reset();
+        this.mapController.reset();
+        this.uiController.reset();
+        this.player.reset();
+        this.foreground.graphics.setAlpha(0);
+    }
+    
+    increaseSpeed () {
+        this.time.delayedCall(10000, _ => {
+            if (this.entityController.wolves.length > 0) {
+                this.entityController.wolves[0].speed += 0.2;
+            }
+            this.increaseSpeed();
+        })
     }
 }

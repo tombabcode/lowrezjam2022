@@ -19,56 +19,38 @@ export default class Player {
         this.sprite.setBounce(0);
         this.sprite.setFrame(0);
 
-        // Shadow
-        this.shadow = this.scene.add.sprite(0, 0, 'ent:shadow');
-        this.shadow.setOrigin(0.5, 0);
-
-        // Movement
-        this.speed = 200;
-        this.maxSpeed = 35;
-        this.factorAccelerate = 3.0;
-        this.factorSlowDown = 0.8;
-
-        // Hunger
-        this.hunger = 0;
-        this.hungerFactor = 1;
-
-        // Flags
-        this.isDead = false;
-        this.canAccelerate = true;
-        this.movingStatus = undefined;
-        this.movingStatusPre = undefined;
+        this.reset();
     }
 
     moveLeft (dTime) {
-        this.movingStatus = 'walk';
         this.sprite.setFlipX(true);
         if (!this.canAccelerate) return;
+        this.movementDirX = -1;
         this.sprite.body.velocity.x += -this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.x < -this.maxSpeed)
             this.sprite.body.velocity.x = -this.maxSpeed;
     }
 
     moveRight (dTime) {
-        this.movingStatus = 'walk';
         this.sprite.setFlipX(false);
         if (!this.canAccelerate) return;
+        this.movementDirX = 1;
         this.sprite.body.velocity.x += this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.x > this.maxSpeed)
             this.sprite.body.velocity.x = this.maxSpeed;
     }
 
     moveTop (dTime) {
-        this.movingStatus = 'walk';
         if (!this.canAccelerate) return;
+        this.movementDirY = -1;
         this.sprite.body.velocity.y += -this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.y < -this.maxSpeed)
             this.sprite.body.velocity.y = -this.maxSpeed;
     }
 
     moveBottom (dTime) {
-        this.movingStatus = 'walk';
         if (!this.canAccelerate) return;
+        this.movementDirY = 1;
         this.sprite.body.velocity.y += this.speed * dTime * this.factorAccelerate;
         if (this.sprite.body.velocity.y > this.maxSpeed)
             this.sprite.body.velocity.y = this.maxSpeed;
@@ -103,32 +85,57 @@ export default class Player {
             this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
             this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)
         ];
+        this.keysAttack = [
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+        ];
+    }
+
+    updateAnimation () {
+        const anim = this.sprite.anims.getName();
+        const isPlaying = this.sprite.anims.isPlaying;
+
+        if (anim == 'player:death') { return; }
+        if (isPlaying && 'player:' + this.currentAnimation == anim) { return; }
+        if (isPlaying && anim == 'player:damage') { return; }
+        if (isPlaying && anim == 'player:attack') { return; }
+
+        this.sprite.play({ key: 'player:' + this.currentAnimation, repeat: -1 });
     }
 
     updateMovement (delta) {
         if (this.isDead) { return; }
 
-        this.movingStatusPre = this.movingStatus;
-        this.movingStatus = undefined;
+        this.movementDirX = 0;
+        this.movementDirY = 0;
 
-        // Horizontal movement
+        // Input
         if (this.keysMoveLeft.some(key => key.isDown)) this.moveLeft(delta);
-        else if (this.keysMoveRight.some(key => key.isDown)) this.moveRight(delta);
-        else this.slowDownHorizontally(delta);
-
-        // Vertical movement
+        if (this.keysMoveRight.some(key => key.isDown)) this.moveRight(delta);
         if (this.keysMoveTop.some(key => key.isDown)) this.moveTop(delta);
-        else if (this.keysMoveBottom.some(key => key.isDown)) this.moveBottom(delta);
-        else this.slowDownVertically(delta);
+        if (this.keysMoveBottom.some(key => key.isDown)) this.moveBottom(delta);
 
-        // Update animation
-        if (this.movingStatus !== this.movingStatusPre) {
-            if (this.movingStatus !== undefined)
-                this.sprite.play({ key: 'player:' + this.movingStatus });
-            else {
-                this.sprite.stop();
-                this.sprite.setFrame(0);
-            }
+        // Movement
+        if (this.movementDirX != 0 || this.movementDirY != 0) {
+            let angle = 0;
+            if (this.movementDirX == 1 && this.movementDirY == 0) { angle = 0; }
+            else if (this.movementDirX == 1 && this.movementDirY == 1) { angle = 45; }
+            else if (this.movementDirX == 0 && this.movementDirY == 1) { angle = 90; }
+            else if (this.movementDirX == -1 && this.movementDirY == 1) { angle = 135; }
+            else if (this.movementDirX == -1 && this.movementDirY == 0) { angle = 180; }
+            else if (this.movementDirX == -1 && this.movementDirY == -1) { angle = 225; }
+            else if (this.movementDirX == 0 && this.movementDirY == -1) { angle = 270; }
+            else angle = 315;
+
+            const x = 1 * Math.cos(angle * (Math.PI / 180));
+            const y = 1 * Math.sin(angle * (Math.PI / 180));
+
+            this.sprite.body.velocity.x = x * this.speed;
+            this.sprite.body.velocity.y = y * this.speed;
+            this.currentAnimation = 'walk';
+        } else {
+            this.sprite.body.velocity.x = 0;
+            this.sprite.body.velocity.y = 0;
+            this.currentAnimation = 'idle';
         }
 
         // Get bounds
@@ -137,10 +144,6 @@ export default class Player {
         // Update depth
         const depth = bounds.y + this.data.offset.y;
         this.sprite.setDepth(depth);
-        this.shadow.setDepth(depth - 1);
-
-        // Update shadow's position
-        this.shadow.setPosition(this.sprite.x, this.sprite.y - 7);
     }
 
     updateHunger (delta) {
@@ -152,6 +155,22 @@ export default class Player {
         }
     }
 
+    updateHealth () {
+        if (this.health <= 0 && !this.isDead) {
+            this.die();
+        }
+    }
+
+    updateAttack () {
+        if (this.keysAttack.some(key => key.isDown))
+            this.attack();
+    }
+
+    doDamage (value) {
+        this.health -= value;
+        this.sprite.play({ key: 'player:damage' });
+    }
+
     die () {
         console.info('Player dead');
         this.isDead = true;
@@ -159,12 +178,48 @@ export default class Player {
         this.sprite.body.velocity.x = 0;
         this.sprite.body.velocity.y = 0;
         this.scene.cameras.main.zoomTo(3, 2000);
-        this.scene.tweens.add({ targets: [this.scene.foreground.graphics], alpha: 1, duration: 1000, delay: 1000 });
+        this.scene.tweens.add({ targets: [this.scene.foreground.graphics], alpha: 1, duration: 1000, delay: 2000 });
+        this.scene.time.delayedCall(3000, _ => this.scene.scene.switch('end'));
     }
 
-    eat (hungerReduction) {
+    eat (hungerReduction, healthRestore) {
         this.hunger -= hungerReduction;
+        this.health += healthRestore;
         if (this.hunger < 0) { this.hunger = 0; }
+        if (this.health > 100) { this.health = 100; }
+    }
+
+    attack () {
+        if (this.sprite.anims.getName() == 'player:attack') { return; }
+        this.sprite.play({ key: 'player:attack' });
+    }
+
+    reset () {
+        // Movement
+        this.speed = 32;
+        this.factorAccelerate = 3.0;
+        this.factorSlowDown = 0.8;
+
+        // Attack
+        this.damage = 1;
+
+        // Hunger
+        this.hunger = 0;
+        this.hungerFactor = 1;
+
+        // Health
+        this.health = 100;
+
+        // Flags
+        this.isDead = false;
+        this.canAccelerate = true;
+        this.currentAnimation = 'idle';
+
+        this.movementDirX = 0;
+        this.movementDirY = 0;
+
+        // Play default animation
+        this.sprite.play({ key: 'player:idle' });
     }
     
 }
